@@ -61,15 +61,14 @@ router.post("/signup", (req, res, next) => {
       return User.create({ email, password: hashedPassword, name });
     })
     .then((createdUser) => {
-      // Deconstruct the newly created user object to omit the password
-      // We should never expose passwords publicly
-      const { email, name, _id } = createdUser;
-
-      // Create a new object that doesn't expose the password
-      const user = { email, name, _id };
-
-      // Send a json response containing the user object
-      res.status(201).json({ user: user });
+      if (createdUser) {
+        const { email, name, _id } = createdUser;
+        const user = { email, name, _id };
+        res.status(201).json({ user: user });
+      } else {
+        // Handle the case where createdUser is undefined
+        res.status(400).json({ message: 'User creation failed' });
+      }
     })
     .catch((err) => next(err)); // In this case, we send error handling to the error handling middleware.
 });
