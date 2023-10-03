@@ -26,7 +26,6 @@ const auctionSchema = new mongoose.Schema({
                 ref: 'User',
             },
             amount: Number,
-            // Timestamp for bid placement
             timestamp: {
                 type: Date,
                 default: Date.now,
@@ -35,8 +34,8 @@ const auctionSchema = new mongoose.Schema({
     ],
     status: {
         type: String,
-        enum: ['active', 'completed', 'expired'], // Define possible auction statuses
-        default: 'active', // Set the default status
+        enum: ['active', 'completed', 'expired'], 
+        default: 'active', 
     },
     endTime: {
         type: Date,
