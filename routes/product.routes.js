@@ -19,20 +19,18 @@ router.post('/create', (req, res) => {
         return res.status(400).json({ message: 'Please provide all required fields.' });
     }
 
-    const newProduct = new Product({
+  
+    Product.create({
         name,
         description,
         photo,
         brand,
         owner,
-    });
-
-    newProduct
-        .save()
+    })
         .then((product) => {
             console.log('Product created successfully:', product);
 
-            
+          
             User.findByIdAndUpdate(owner, { $push: { products: product._id } })
                 .then(() => {
                     console.log('User updated with the new product.');
@@ -115,8 +113,21 @@ router.delete('/delete/:productId', (req, res) => {
             if (!deletedProduct) {
                 return res.status(404).json({ message: 'Product not found' });
             }
-            console.log('Product deleted successfully:', deletedProduct);
-            res.status(200).json({ message: 'Product deleted successfully' });
+
+           
+            User.findByIdAndUpdate(
+                deletedProduct.owner,
+                { $pull: { products: deletedProduct._id } },
+                { new: true }
+            )
+                .then(() => {
+                    console.log('Product and user updated successfully.');
+                    res.status(200).json({ message: 'Product deleted successfully' });
+                })
+                .catch((error) => {
+                    console.error('Error updating user:', error);
+                    res.status(500).json({ message: 'Server error' });
+                });
         })
         .catch((error) => {
             console.error('Error deleting product:', error);
