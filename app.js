@@ -9,7 +9,10 @@ require("./db");
 // https://www.npmjs.com/package/express
 const express = require("express");
 
+
 const app = express();
+
+
 
 // ℹ️ This function is getting exported from the config folder. It runs most pieces of middleware
 require("./config")(app);
@@ -17,12 +20,12 @@ require("./config")(app);
 const indexRoutes = require("./routes/index.routes");
 const authRoutes = require("./routes/auth.routes");
 const userRoutes = require('./routes/user.routes')
-const auctionRoutes = require("./routes/auction.routes");
+const {router, server} = require("./routes/auction.routes");
 const productRoutes = require("./routes/product.routes")
 
 app.use("/api", indexRoutes);
 app.use('/api/user', userRoutes)
-app.use("/api/auctions", auctionRoutes);
+app.use("/api/auctions", router);
 app.use('/api/products', productRoutes);
 app.use("/api/auth", authRoutes);
 
