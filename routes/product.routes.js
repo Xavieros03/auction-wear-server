@@ -3,14 +3,15 @@ const router = express.Router();
 const Product = require('../models/Product.model');
 const User = require('../models/User.model'); 
 const { isAuthenticated } = require("../middleware/jwt.middleware.js")
+const fileUploader = require("../config/cloudinary.config");
 
 router.post('/create', (req, res) => {
-    const { name, description, photo, brand, owner } = req.body;
+    const { name, description, image, brand, owner } = req.body;
 
     console.log('Received request to create a product with data:');
     console.log('Name:', name);
     console.log('Description:', description);
-    console.log('Photo:', photo);
+    console.log('Image:', image);
     console.log('Brand:', brand);
     console.log('Owner:', owner);
 
@@ -23,7 +24,7 @@ router.post('/create', (req, res) => {
     Product.create({
         name,
         description,
-        photo,
+        image,
         brand,
         owner,
     })
@@ -45,6 +46,20 @@ router.post('/create', (req, res) => {
             console.error('Error creating product:', error);
             res.status(500).json({ message: 'Server error' });
         });
+});
+
+router.post("/upload", fileUploader.single("image"), (req, res, next) => {
+    // console.log("file is: ", req.file)
+
+    if (!req.file) {
+        next(new Error("No file uploaded!"));
+        return;
+    }
+
+    // Get the URL of the uploaded file and send it as a response.
+    // 'fileUrl' can be any name, just make sure you remember to use the same when accessing it on the frontend
+
+    res.json({ fileUrl: req.file.path });
 });
 
 router.get('/all', isAuthenticated, (req, res) => {
