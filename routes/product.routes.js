@@ -30,6 +30,8 @@ router.post('/create', (req, res) => {
     })
         .then((product) => {
             console.log('Product created successfully:', product);
+            io.emit(`productCreated_${product._id}`, product);
+            
 
           
             User.findByIdAndUpdate(owner, { $push: { products: product._id } })
@@ -49,15 +51,14 @@ router.post('/create', (req, res) => {
 });
 
 router.post("/upload", fileUploader.single("image"), (req, res, next) => {
-    // console.log("file is: ", req.file)
+   
 
     if (!req.file) {
         next(new Error("No file uploaded!"));
         return;
     }
 
-    // Get the URL of the uploaded file and send it as a response.
-    // 'fileUrl' can be any name, just make sure you remember to use the same when accessing it on the frontend
+    
 
     res.json({ fileUrl: req.file.path });
 });
@@ -106,12 +107,16 @@ router.put('/update/:productId', (req, res) => {
         description,
         photo,
         brand,
-    }, { new: true }) 
+    }, { new: true })
         .then((updatedProduct) => {
             if (!updatedProduct) {
                 return res.status(404).json({ message: 'Product not found' });
             }
             console.log('Product updated successfully:', updatedProduct);
+
+            
+            io.emit(`productUpdated_${productId}`, updatedProduct);
+
             res.status(200).json(updatedProduct);
         })
         .catch((error) => {
@@ -136,6 +141,7 @@ router.delete('/delete/:productId', (req, res) => {
                 { new: true }
             )
                 .then(() => {
+                    
                     console.log('Product and user updated successfully.');
                     res.status(200).json({ message: 'Product deleted successfully' });
                 })
