@@ -26,6 +26,49 @@ module.exports = (io) => {
                 console.error('Error starting auctions:', error);
             });
     });
+    cron.schedule('* * * * *', () => {
+        const currentTimestamp = new Date();
+
+        Auction.find({
+            status: 'active',
+            startTime: { $lte: currentTimestamp },
+        })
+            .then((activeAuctions) => {
+                activeAuctions.forEach((auction) => {
+
+                    const lastBidTime = auction.bids.length > 0 ? auction.bids[auction.bids.length - 1].timestamp : auction.startTime;
+                    const timeDifference = currentTimestamp - lastBidTime;
+
+                    if (timeDifference >= 5 * 60 * 1000) {
+
+                        auction.status = 'completed';
+
+
+                        if (auction.bids.length > 0) {
+                            let highestBidAmount = -1;
+                            let highestBidderId = null;
+
+                            for (const bid of auction.bids) {
+                                if (bid.amount > highestBidAmount) {
+                                    highestBidAmount = bid.amount;
+                                    highestBidderId = bid.bidder;
+                                }
+                            }
+
+                            auction.winner = highestBidderId;
+                        }
+
+                        auction.save();
+
+
+                        io.emit('auctionUpdated', auction);
+                    }
+                });
+            })
+            .catch((error) => {
+                console.error('Error checking and updating auctions:', error);
+            });
+    });
 
     router.get('/main', (req, res) => {
         Auction.find()
@@ -45,8 +88,15 @@ module.exports = (io) => {
         const sellerId = userId;
 
         const currentTimestamp = new Date();
-        const startTime = scheduledStartTime
+        const startTime = scheduledStartTime;
         const endTime = new Date(currentTimestamp.getTime() + 5 * 60 * 1000);
+
+
+        const initialBid = {
+            bidder: userId,
+            amount: parseFloat(startingBid),
+            timestamp: new Date(),
+        };
 
         const newAuction = new Auction({
             product: productId,
@@ -56,12 +106,12 @@ module.exports = (io) => {
             startTime,
             endTime,
             participants: [userId],
+            bids: [initialBid],
         });
 
         newAuction
             .save()
             .then((auction) => {
-
                 io.emit('auctionCreatedOrUpdated', auction);
                 res.status(201).json(auction);
             })
@@ -142,24 +192,25 @@ module.exports = (io) => {
                     return res.status(400).json({ message: 'Auction is not active' });
                 }
 
-
                 if (amount <= auction.currentBid) {
                     return res.status(400).json({ message: 'Bid amount is not higher than the current bid' });
                 }
 
 
-                if (amount > auction.highestBid) {
-                    auction.highestBid = amount;
-                    auction.highestBidder = userId;
-                }
+                const newBid = {
+                    bidder: userId,
+                    amount: amount,
+                };
+
+                auction.bids.push(newBid);
 
 
                 auction.currentBid = amount;
-                auction.bids.push({ bidder: userId, amount });
 
                 auction
                     .save()
                     .then((updatedAuction) => {
+
                         io.emit('bidPlaced', updatedAuction);
                         res.status(200).json(updatedAuction);
                     })

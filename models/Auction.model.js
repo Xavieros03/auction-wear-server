@@ -34,7 +34,7 @@ const auctionSchema = new mongoose.Schema({
     ],
     status: {
         type: String,
-        enum: ['active', 'completed', 'expired', 'scheduled'],
+        enum: ['active', 'completed', 'scheduled'],
         default: 'scheduled',
     },
     startTime: {
@@ -67,6 +67,11 @@ const auctionSchema = new mongoose.Schema({
             ref: 'User',
         },
     ],
+    winner: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: null,
+    },
    
 });
 
