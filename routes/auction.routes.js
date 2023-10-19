@@ -204,7 +204,7 @@ module.exports = (io) => {
                     return res.status(400).json({ message: 'You have not joined this auction' });
                 }
 
-            
+
 
                 if (amount <= auction.currentBid) {
                     return res.status(400).json({ message: 'Bid amount is not higher than the current bid' });

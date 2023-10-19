@@ -4,15 +4,15 @@ const { isAuthenticated } = require("../middleware/jwt.middleware.js");
 const User = require("../models/User.model");
 
 
-router.get('/profile/:id', isAuthenticated, (req, res) => {
+router.get('/profile/:id', (req, res) => {
     const { id } = req.params;
 
     if (id === 'null') {
-        
+
         return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    
+
     User.findById(id)
         .then((user) => {
             res.json(user)
@@ -29,7 +29,7 @@ router.put('/profile/:id', isAuthenticated, (req, res) => {
         return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    
+
     const updatedUserData = req.body;
 
     User.findByIdAndUpdate(id, updatedUserData, { new: true })
