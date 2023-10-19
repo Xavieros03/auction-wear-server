@@ -6,7 +6,7 @@ const { isAuthenticated } = require("../middleware/jwt.middleware.js")
 const fileUploader = require("../config/cloudinary.config");
 
 module.exports = (io) => {
-router.post('/create', (req, res) => {
+    router.post('/create', isAuthenticated, (req, res) => {
     const { name, description, image, brand, owner } = req.body;
 
     console.log('Received request to create a product with data:');
@@ -51,7 +51,7 @@ router.post('/create', (req, res) => {
         });
 });
 
-router.post("/upload", fileUploader.single("image"), (req, res, next) => {
+    router.post("/upload", fileUploader.single("image"), isAuthenticated, (req, res, next) => {
    
 
     if (!req.file) {
@@ -78,7 +78,7 @@ router.get('/all', isAuthenticated, (req, res) => {
         });
 });
 
-router.get('/:productId', (req, res) => {
+    router.get('/:productId', isAuthenticated, (req, res) => {
     const productId = req.params.productId;
     console.log(productId)
 
@@ -95,7 +95,7 @@ router.get('/:productId', (req, res) => {
         });
 });
 
-router.put('/update/:productId', (req, res) => {
+    router.put('/update/:productId', isAuthenticated, (req, res) => {
     const productId = req.params.productId;
     const { name, description, photo, brand } = req.body;
 
@@ -125,7 +125,7 @@ router.put('/update/:productId', (req, res) => {
             res.status(500).json({ message: 'Server error' });
         });
 });
-router.delete('/delete/:productId', (req, res) => {
+    router.delete('/delete/:productId', isAuthenticated, (req, res) => {
     const { productId } = req.params;
     console.log(productId)
 

@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const Auction = require('../models/Auction.model');
 const cron = require('node-cron');
+const { isAuthenticated } = require("../middleware/jwt.middleware.js");
 
 module.exports = (io) => {
-    cron.schedule('* * * * *', () => {
+    cron.schedule('* * * * *', isAuthenticated, () => {
         const currentTimestamp = new Date();
 
         Auction.find({
@@ -25,7 +26,7 @@ module.exports = (io) => {
                 console.error('Error starting auctions:', error);
             });
     });
-    cron.schedule('* * * * *', () => {
+    cron.schedule('* * * * *', isAuthenticated, () => {
         const currentTimestamp = new Date();
 
         Auction.find({
@@ -69,7 +70,7 @@ module.exports = (io) => {
             });
     });
 
-    router.get('/main', (req, res) => {
+    router.get('/main', isAuthenticated, (req, res) => {
         Auction.find()
             .populate('product')
             .then((auctions) => {
@@ -81,7 +82,7 @@ module.exports = (io) => {
             });
     });
 
-    router.post('/create', (req, res) => {
+    router.post('/create', isAuthenticated, (req, res) => {
         const { productId, startingBid, scheduledStartTime, userId } = req.body;
 
         const sellerId = userId;
@@ -120,7 +121,7 @@ module.exports = (io) => {
             });
     });
 
-    router.get('/:auctionId', (req, res) => {
+    router.get('/:auctionId', isAuthenticated, (req, res) => {
         const { auctionId } = req.params;
 
         Auction.findById(auctionId)
@@ -138,7 +139,7 @@ module.exports = (io) => {
             });
     });
 
-    router.put('/join/:auctionId', (req, res) => {
+    router.put('/join/:auctionId', isAuthenticated, (req, res) => {
         const { auctionId } = req.params;
         const { userId } = req.body;
 
@@ -177,7 +178,7 @@ module.exports = (io) => {
             });
     });
 
-    router.put('/bid/:auctionId', (req, res) => {
+    router.put('/bid/:auctionId', isAuthenticated, (req, res) => {
         const { auctionId } = req.params;
         const { bidder, amount } = req.body;
         console.log(bidder)
