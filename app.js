@@ -19,7 +19,7 @@ const server = http.createServer(app);
 
 const io = socketIo(server, {
     cors: {
-        origin: "http://localhost:3000",
+        origin: "https://auctionista.netlify.app",
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
         allowedHeaders: ["my-custom-header"],
         credentials: true,
@@ -33,7 +33,7 @@ const indexRoutes = require("./routes/index.routes");
 const authRoutes = require("./routes/auth.routes");
 const userRoutes = require('./routes/user.routes')
 const auctionRoutes = require('./routes/auction.routes')(io);
-const productRoutes = require("./routes/product.routes")
+const productRoutes = require("./routes/product.routes")(io)
 
 app.use("/api", indexRoutes);
 app.use('/api/user', userRoutes)

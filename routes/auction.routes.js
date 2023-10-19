@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const Auction = require('../models/Auction.model');
 const cron = require('node-cron');
-const io = require('../app').io;
 
 module.exports = (io) => {
     cron.schedule('* * * * *', () => {
@@ -180,10 +179,12 @@ module.exports = (io) => {
 
     router.put('/bid/:auctionId', (req, res) => {
         const { auctionId } = req.params;
-        const { userId, amount } = req.body;
+        const { bidder, amount } = req.body;
+        console.log(bidder)
 
         Auction.findById(auctionId)
             .then((auction) => {
+                console.log(auction.seller)
                 if (!auction) {
                     return res.status(404).json({ message: 'Auction not found' });
                 }
@@ -192,13 +193,25 @@ module.exports = (io) => {
                     return res.status(400).json({ message: 'Auction is not active' });
                 }
 
+                ;
+
+                if (bidder.toString() === auction.seller.toString()) {
+                    return res.status(400).json({ message: 'The auction seller cannot bid on their own auction' });
+                }
+
+                if (!auction.participants.find(participantId => participantId.toString() === bidder.toString())) {
+                    return res.status(400).json({ message: 'You have not joined this auction' });
+                }
+
+            
+
                 if (amount <= auction.currentBid) {
                     return res.status(400).json({ message: 'Bid amount is not higher than the current bid' });
                 }
 
 
                 const newBid = {
-                    bidder: userId,
+                    bidder: bidder,
                     amount: amount,
                 };
 

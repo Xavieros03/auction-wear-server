@@ -5,6 +5,7 @@ const User = require('../models/User.model');
 const { isAuthenticated } = require("../middleware/jwt.middleware.js")
 const fileUploader = require("../config/cloudinary.config");
 
+module.exports = (io) => {
 router.post('/create', (req, res) => {
     const { name, description, image, brand, owner } = req.body;
 
@@ -157,4 +158,5 @@ router.delete('/delete/:productId', (req, res) => {
 });
 
 
-module.exports = router;
+    return router;
+};
