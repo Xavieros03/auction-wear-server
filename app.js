@@ -22,7 +22,7 @@ const io = socketIo(server, {
         origin: "https://auctionista.netlify.app",
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
         allowedHeaders: ["my-custom-header"],
-        credentials: true,
+        //credentials: true,
     },
 });
 
