@@ -5,7 +5,7 @@ const cron = require('node-cron');
 const { isAuthenticated } = require("../middleware/jwt.middleware.js");
 
 module.exports = (io) => {
-    cron.schedule('* * * * *', isAuthenticated, () => {
+    cron.schedule('* * * * *', () => {
         const currentTimestamp = new Date();
 
         Auction.find({
@@ -26,7 +26,7 @@ module.exports = (io) => {
                 console.error('Error starting auctions:', error);
             });
     });
-    cron.schedule('* * * * *', isAuthenticated, () => {
+    cron.schedule('* * * * *', () => {
         const currentTimestamp = new Date();
 
         Auction.find({
