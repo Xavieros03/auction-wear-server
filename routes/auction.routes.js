@@ -126,10 +126,12 @@ module.exports = (io) => {
 
         Auction.findById(auctionId)
             .populate('product')
+            .populate('winner')
             .then((auction) => {
                 if (!auction) {
                     return res.status(404).json({ message: 'Auction not found' });
                 }
+                io.emit('auctionDetails', auction);
 
                 res.status(200).json(auction);
             })
@@ -144,6 +146,7 @@ module.exports = (io) => {
         const { userId } = req.body;
 
         Auction.findById(auctionId)
+            .populate('product')
             .then((auction) => {
                 if (!auction) {
                     return res.status(404).json({ message: 'Auction not found' });
@@ -163,8 +166,11 @@ module.exports = (io) => {
 
                 auction
                     .save()
+
                     .then((updatedAuction) => {
-                        io.emit('auctionCreatedOrUpdated', updatedAuction);
+                        console.log(updatedAuction)
+                        io.emit('auctionDetails', updatedAuction);
+                        io.emit('participantsUpdated', updatedAuction);
                         res.status(200).json(updatedAuction);
                     })
                     .catch((error) => {
@@ -184,6 +190,7 @@ module.exports = (io) => {
         console.log(bidder)
 
         Auction.findById(auctionId)
+            .populate('product')
             .then((auction) => {
                 console.log(auction.seller)
                 if (!auction) {
