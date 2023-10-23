@@ -61,7 +61,7 @@ module.exports = (io) => {
                         auction.save();
 
 
-                        io.emit('auctionUpdated', auction);
+                        io.emit('auctionWinner', auction);
                     }
                 });
             })
