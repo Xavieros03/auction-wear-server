@@ -1,10 +1,9 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-  username: {
+  name: {
     type: String,
     required: true,
-    unique: true,
   },
   email: {
     type: String,
@@ -18,23 +17,23 @@ const userSchema = new mongoose.Schema({
   address: {
     street: {
       type: String,
-      required: true,
+      
     },
     city: {
       type: String,
-      required: true,
+      
     },
     state: {
       type: String,
-      required: true,
+      
     },
     postalCode: {
       type: String,
-      required: true,
+     
     },
     country: {
       type: String,
-      required: true,
+  
     },
   },
   products: [

@@ -26,7 +26,6 @@ const auctionSchema = new mongoose.Schema({
                 ref: 'User',
             },
             amount: Number,
-            // Timestamp for bid placement
             timestamp: {
                 type: Date,
                 default: Date.now,
@@ -35,13 +34,45 @@ const auctionSchema = new mongoose.Schema({
     ],
     status: {
         type: String,
-        enum: ['active', 'completed', 'expired'], // Define possible auction statuses
-        default: 'active', // Set the default status
+        enum: ['active', 'completed', 'scheduled'],
+        default: 'scheduled',
+    },
+    startTime: {
+        type: Date,
+        required: true,
+    },
+    scheduledStartTime: {
+        type: Date,
+        required: true,
     },
     endTime: {
         type: Date,
         required: true,
     },
+    highestBid: {
+        type: Number,
+        default: 0,
+    },
+    highestBidder: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+    },
+    bidCount: {
+        type: Number,
+        default: 0,
+    },
+    participants: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+        },
+    ],
+    winner: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: null,
+    },
+   
 });
 
 const Auction = mongoose.model('Auction', auctionSchema);

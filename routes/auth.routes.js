@@ -20,9 +20,9 @@ const saltRounds = 10;
 router.post("/signup", (req, res, next) => {
   const { email, password, name } = req.body;
 
-  // Check if email or password or name are provided as empty strings
+  // Check if email, password, and name are provided as empty strings
   if (email === "" || password === "" || name === "") {
-    res.status(400).json({ message: "Provide email, password and name" });
+    res.status(400).json({ message: "Provide email, password, and name" });
     return;
   }
 
@@ -38,7 +38,7 @@ router.post("/signup", (req, res, next) => {
   if (!passwordRegex.test(password)) {
     res.status(400).json({
       message:
-        "Password must have at least 6 characters and contain at least one number, one lowercase and one uppercase letter.",
+        "Password must have at least 6 characters and contain at least one number, one lowercase, and one uppercase letter.",
     });
     return;
   }
@@ -57,19 +57,32 @@ router.post("/signup", (req, res, next) => {
       const hashedPassword = bcrypt.hashSync(password, salt);
 
       // Create the new user in the database
+      const newUser = {
+        email,
+        password: hashedPassword,
+        name,
+        // Initialize the address fields with empty strings
+        address: {
+          street: "",
+          city: "",
+          state: "",
+          postalCode: "",
+          country: "",
+        },
+      };
+
       // We return a pending promise, which allows us to chain another `then`
-      return User.create({ email, password: hashedPassword, name });
+      return User.create(newUser);
     })
     .then((createdUser) => {
-      // Deconstruct the newly created user object to omit the password
-      // We should never expose passwords publicly
-      const { email, name, _id } = createdUser;
-
-      // Create a new object that doesn't expose the password
-      const user = { email, name, _id };
-
-      // Send a json response containing the user object
-      res.status(201).json({ user: user });
+      if (createdUser) {
+        const { email, name, _id } = createdUser;
+        const user = { email, name, _id };
+        res.status(201).json({ user });
+      } else {
+        // Handle the case where createdUser is undefined
+        res.status(400).json({ message: "User creation failed" });
+      }
     })
     .catch((err) => next(err)); // In this case, we send error handling to the error handling middleware.
 });
@@ -110,7 +123,7 @@ router.post("/login", (req, res, next) => {
         });
 
         // Send the token as the response
-        res.status(200).json({ authToken: authToken });
+        res.status(200).json({ authToken: authToken, user: foundUser });
       } else {
         res.status(401).json({ message: "Unable to authenticate the user" });
       }
