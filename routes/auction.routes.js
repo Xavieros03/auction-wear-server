@@ -3,6 +3,7 @@ const router = express.Router();
 const Auction = require('../models/Auction.model');
 const cron = require('node-cron');
 const { isAuthenticated } = require("../middleware/jwt.middleware.js");
+const Product = require("../models/Product.model")
 
 module.exports = (io) => {
     cron.schedule('* * * * *', () => {
@@ -61,7 +62,7 @@ module.exports = (io) => {
                         auction.save();
 
 
-                        io.emit('auctionUpdated', auction);
+                        io.emit('auctionWinner', auction);
                     }
                 });
             })
@@ -74,6 +75,7 @@ module.exports = (io) => {
         Auction.find()
             .populate('product')
             .then((auctions) => {
+                io.emit('auctionInfo', auctions);
                 res.json(auctions);
             })
             .catch((error) => {
@@ -112,7 +114,15 @@ module.exports = (io) => {
         newAuction
             .save()
             .then((auction) => {
-                io.emit('auctionCreatedOrUpdated', auction);
+                Product.findById(productId)
+                    .then((product) => {
+                        const responseData = { auction, product, startingBid };
+                        io.emit('auctionCreatedOrUpdated', responseData);
+                    })
+                    .catch((error) => {
+                        console.error('Error fetching product data:', error);
+                    });
+
                 res.status(201).json(auction);
             })
             .catch((error) => {
@@ -126,10 +136,12 @@ module.exports = (io) => {
 
         Auction.findById(auctionId)
             .populate('product')
+            .populate('winner')
             .then((auction) => {
                 if (!auction) {
                     return res.status(404).json({ message: 'Auction not found' });
                 }
+                io.emit('auctionDetails', auction);
 
                 res.status(200).json(auction);
             })
@@ -144,6 +156,7 @@ module.exports = (io) => {
         const { userId } = req.body;
 
         Auction.findById(auctionId)
+            .populate('product')
             .then((auction) => {
                 if (!auction) {
                     return res.status(404).json({ message: 'Auction not found' });
@@ -163,8 +176,11 @@ module.exports = (io) => {
 
                 auction
                     .save()
+
                     .then((updatedAuction) => {
-                        io.emit('auctionCreatedOrUpdated', updatedAuction);
+                        console.log(updatedAuction)
+                        io.emit('auctionDetails', updatedAuction);
+                        io.emit('participantsUpdated', updatedAuction);
                         res.status(200).json(updatedAuction);
                     })
                     .catch((error) => {
@@ -184,6 +200,7 @@ module.exports = (io) => {
         console.log(bidder)
 
         Auction.findById(auctionId)
+            .populate('product')
             .then((auction) => {
                 console.log(auction.seller)
                 if (!auction) {
@@ -204,7 +221,9 @@ module.exports = (io) => {
                     return res.status(400).json({ message: 'You have not joined this auction' });
                 }
 
-
+                if (amount <= auction.startingBid) {
+                    return res.status(400).json({ message: 'Bid amount is not higher than the starting bid' });
+                }
 
                 if (amount <= auction.currentBid) {
                     return res.status(400).json({ message: 'Bid amount is not higher than the current bid' });

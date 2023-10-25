@@ -19,7 +19,7 @@ const server = http.createServer(app);
 
 const io = socketIo(server, {
     cors: {
-        origin: "https://auctionista.netlify.app",
+        origin: "http://localhost:3000",
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
         allowedHeaders: ["my-custom-header"],
         //credentials: true,
